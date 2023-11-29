@@ -1,0 +1,110 @@
+import React from 'react';
+import { Line } from 'react-chartjs-2';
+import './styles.css'; // Import your CSS file
+
+const MultiLineGraph = ({ data }) => {
+  // Assuming data is a 2D array with x and y values
+  const chartData = {
+    labels: data.map(point => point[0]), // x-axis values
+    datasets: data[0].slice(1).map((_, index) => ({
+      label: `Line ${index + 1}`,
+      data: data.map(point => point[index + 1]), // y-axis values
+      fill: false,
+      borderColor: getRandomColor(),
+    })),
+  };
+
+  const options = {
+    scales: {
+      x: {
+        type: 'linear', // assuming x-axis values are numbers
+        position: 'bottom',
+      },
+      y: {
+        type: 'linear', // assuming y-axis values are numbers
+        position: 'left',
+      },
+    },
+  };
+
+  return (
+    <div className="graph-container">
+      <Line data={chartData} options={options} />
+    </div>
+  );
+};
+
+// Function to generate random colors
+const getRandomColor = () => `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+
+export default MultiLineGraph;
+
+=====================================
+/* styles.css */
+
+.graph-container {
+  width: 80%;
+  margin: auto;
+}
+
+/* Optional: Adjust styles based on your preferences */
+==========================================================
+import React from 'react';
+import MultiLineGraph from './MultiLineGraph';
+
+const App = () => {
+  const sampleData = [
+    [1, 10, 20, 15],
+    [2, 15, 25, 18],
+    [3, 12, 30, 20],
+    // Add more data points as needed
+  ];
+
+  return (
+    <div>
+      <h1>Multi-Line Graph</h1>
+      <MultiLineGraph data={sampleData} />
+    </div>
+  );
+};
+
+export default App;
+================================================================
+import React from 'react';
+import { Line } from 'react-chartjs-2';
+
+const MultiLineGraph = ({ data }) => {
+  // Assuming data is a 2D array with x and y values
+  const chartData = {
+    labels: data.map(point => point[0]), // x-axis values
+    datasets: data[0].slice(1).map((_, index) => ({
+      label: `Line ${index + 1}`,
+      data: data.map(point => point[index + 1]), // y-axis values
+      fill: false,
+      borderColor: getRandomColor(),
+    })),
+  };
+
+  const options = {
+    scales: {
+      x: {
+        type: 'linear', // assuming x-axis values are numbers
+        position: 'bottom',
+      },
+      y: {
+        type: 'linear', // assuming y-axis values are numbers
+        position: 'left',
+      },
+    },
+  };
+
+  return <Line data={chartData} options={options} />;
+};
+
+// Function to generate random colors
+const getRandomColor = () => `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+
+export default MultiLineGraph;
+------------------------------------------
+
+npm install react-chartjs-2 chart.js

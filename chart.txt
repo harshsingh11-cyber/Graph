@@ -1,0 +1,198 @@
+import React from "react";
+import ReactDOM from "react-dom";
+
+import App from "./App";
+
+const rootElement = document.getElementById("root");
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  rootElement
+);
+========================
+import React from "react";
+import "./styles.scss";
+import LineChart from "./LineChart";
+
+export default function App() {
+  return (
+    <div className="App">
+      <LineChart />
+    </div>
+  );
+}
+==================================================
+import React, { useState } from "react";
+import { Line } from "react-chartjs-2";
+import ToolTip from "./ToolTip";
+
+function LineChart() {
+  const [tooltipModel, setTooltipModel] = useState({});
+
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const [position, setPosition] = useState({});
+
+  const data = {
+    labels: ["23.05", "24.05", "25.05", "26.05", "27.05", "28.05", "29.05"],
+    datasets: [
+      {
+        color: "#fff",
+        label: "Buying",
+        fill: false,
+        lineTension: 0.3,
+        backgroundColor: "#2a2c30",
+        borderColor: "#2a2c30",
+        borderCapStyle: "round",
+        borderJoinStyle: "round",
+        pointBorderColor: "#2a2c30",
+        pointBackgroundColor: "#fff",
+        pointBorderWidth: 1,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: "#2a2c30",
+        pointHoverBorderColor: "#fff",
+        pointHoverBorderWidth: 5,
+        pointRadius: 0,
+        pointHitRadius: 5,
+        data: [0, 14, 21, 9, 35, 31, 36]
+      },
+      {
+        color: "#000",
+        label: "Selling",
+        fill: false,
+        lineTension: 0.3,
+        backgroundColor: "#f84c1e",
+        borderColor: "#f84c1e",
+        borderCapStyle: "round",
+        borderJoinStyle: "round",
+        pointBorderColor: "#f84c1e",
+        pointBackgroundColor: "#fff",
+        pointBorderWidth: 1,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: "#f84c1e",
+        pointHoverBorderColor: "#fff",
+        pointHoverBorderWidth: 5,
+        pointRadius: 0,
+        pointHitRadius: 5,
+        data: [20, 39, 10, 11, 16, 2, 40]
+      }
+    ]
+  };
+
+  const options = {
+    scales: {
+      yAxes: [
+        {
+          ticks: {
+            stepSize: 10
+          },
+          gridLines: {
+            drawTicks: false
+          }
+        }
+      ],
+      xAxes: [
+        {
+          gridLines: {
+            display: false
+          }
+        }
+      ]
+    },
+    tooltips: {
+      // backgroundColor: "#fff",
+      // callbacks: {
+      //   title: function() {
+      //     return "";
+      //   },
+      //   labelColor: function() {
+      //     return "";
+      //   },
+      //   label: function(tooltipItem, data) {
+      //     var label = tooltipItem.yLabel;
+      //     return label;
+      //   },
+      //   labelTextColor: function(tooltipItem) {
+      //     if (tooltipItem.datasetIndex === 0) {
+      //       return "#2a2c30";
+      //     }
+      //     return "#f84c1e";
+      //   }
+      // },
+
+      mode: "index",
+
+      intersect: false,
+
+      // Disable the on-canvas tooltip
+      enabled: false,
+
+      custom: function(tooltipModel) {
+        setTooltipModel(tooltipModel);
+
+        // Hide if no tooltip
+        if (tooltipModel.opacity === 0) {
+          setShowTooltip(false);
+          return;
+        }
+
+        setShowTooltip(true);
+
+        // `this` will be the overall tooltip
+        setPosition(this._chart.canvas.getBoundingClientRect());
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h2>Multi Line Chart</h2>
+      <Line options={options} data={data} />
+      {tooltipModel.dataPoints !== undefined &&
+        tooltipModel.dataPoints.map((tooltip, index) => {
+          return (
+            <ToolTip
+              data={tooltip}
+              isShow={showTooltip}
+              position={position}
+              color={tooltipModel.labelColors[index].borderColor}
+            />
+          );
+        })}
+    </div>
+  );
+}
+
+export default LineChart;
+--------------------
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+-----------------------------======================
+import "./ToolTip.scss";
+import React from "react";
+
+function ToolTip({ data, isShow, position, color }) {
+  const top = position.top + window.pageYOffset + data.y;
+  const left = position.left + window.pageXOffset + data.x;
+
+  return (
+    isShow && (
+      <div style={{ top, left, color }} className="tooltip-wrapper">
+        {data.yLabel}
+      </div>
+    )
+  );
+}
+
+export default ToolTip;
+
+.tooltip-wrapper {
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0 10px 24px 0 rgba(29, 42, 68, 0.12);
+  background-color: #fff;
+  position: absolute;
+}
