@@ -1,0 +1,113 @@
+// DataContext.js
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+const DataContext = createContext();
+
+export const useDataContext = () => useContext(DataContext);
+
+export const DataProvider = ({ children }) => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const updateData = (newData) => {
+    setData(newData);
+  };
+
+  useEffect(() => {
+    // Replace 'your-api-endpoint' with your actual API endpoint
+    fetch('your-api-endpoint')
+      .then((response) => response.json())
+      .then((result) => {
+        setData(result);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+        setLoading(false);
+      });
+  }, []);
+
+  return (
+    <DataContext.Provider value={{ data, loading, updateData }}>
+      {children}
+    </DataContext.Provider>
+  );
+};
+==========================================
+
+// ChildComponent1.js
+import React from 'react';
+import { useDataContext } from './DataContext';
+
+const ChildComponent1 = () => {
+  const { data, loading, updateData } = useDataContext();
+
+  const handleAddItem = () => {
+    const newItem = { id: Date.now(), name: 'New Item', description: 'New Description' };
+    const newData = [...data, newItem];
+    updateData(newData);
+  };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  return (
+    <div>
+      <h2>Child Component 1</h2>
+      <button onClick={handleAddItem}>Add Item</button>
+      <ul>
+        {data.map((item) => (
+          <li key={item.id}>{item.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default ChildComponent1;
+=============================================================
+
+// ParentComponent.js
+import React from 'react';
+import ChildComponent1 from './ChildComponent1';
+import ChildComponent2 from './ChildComponent2';
+import { DataProvider } from './DataContext';
+
+const ParentComponent = () => {
+  return (
+    <DataProvider>
+      <div>
+        <h1>Parent Component</h1>
+        <ChildComponent1 />
+        <ChildComponent2 />
+      </div>
+    </DataProvider>
+  );
+};
+
+export default ParentComponent;
+====================================================
+
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { DataProvider } from './DataContext';  // Import the DataProvider
+import { PrimeReactProvider } from 'primereact/api';
+import 'primereact/resources/themes/lara-light-indigo/theme.css';   // theme
+import 'primeflex/primeflex.css';                                   // css utility
+import 'primeicons/primeicons.css';
+import 'primereact/resources/primereact.css';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <PrimeReactProvider>
+      <DataProvider> {/* Wrap your App with DataProvider */}
+        <App />
+      </DataProvider>
+    </PrimeReactProvider>
+  </React.StrictMode>
+);
+=================================================
