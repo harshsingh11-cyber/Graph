@@ -1,0 +1,40 @@
+app.get("/getData", async (req, res) => {
+  const { first, date } = req.query;
+
+  const queries = [
+    executeQuery(connection1, q1),
+    executeQuery(connection2, q2),
+    executeQuery(connection3, q3),
+  ];
+
+  try {
+    const [results1, results2, results3] = await Promise.all(queries);
+
+    results1.concat(results2, results3).forEach(dataObj => {
+      const keyHolder = dataObj.Key_Holder;
+      if (mapObj.has(keyHolder)) {
+        mapObj.get(keyHolder).Total += dataObj.Total;
+      } else {
+        mapObj.set(keyHolder, dataObj);
+      }
+    });
+
+    console.log({ mapObj });
+    res.send(Array.from(mapObj.values()));
+  } catch (error) {
+    console.log("Error Found on fetching data" + " " + error);
+    res.send("Error Found ...");
+  }
+});
+
+function executeQuery(connection, query) {
+  return new Promise((resolve, reject) => {
+    connection.query(query, (err, results) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
