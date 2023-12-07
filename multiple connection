@@ -1,0 +1,90 @@
+let mapObj = new Map();
+
+app.get("/getData", async (req, res) => {
+  let first = req.query.first;
+  let date = req.query.date;
+ 
+  // UNION ALL of 3 table and upload the computed data
+  // Query for get data from SQL
+  let q1 = `SELECT CONCAT(Symbol,ExpiryDate,StrikePrice,OptionType) as Key_Holder, Symbol,ExpiryDate,StrikePrice,OptionType,sum(TradeQty) as Total
+       from exlayer_master_index.executed_trades_1ee8 where ExpiryDate >= 20231206   group by Symbol,ExpiryDate,StrikePrice,OptionType
+       HAVING sum(TradeQty) != 0;`;
+ 
+  let q2 = `SELECT CONCAT(Symbol,ExpiryDate,StrikePrice,OptionType) as Key_Holder, Symbol,ExpiryDate,StrikePrice,OptionType,sum(TradeQty) as Total
+       from exlayer_master_stocks.executed_trades_enra where ExpiryDate >= 20231206   
+       group by Symbol,ExpiryDate,StrikePrice,OptionType
+          HAVING sum(TradeQty) != 0;`;
+ 
+  let q3 = `SELECT CONCAT(Symbol,ExpiryDate,StrikePrice,OptionType) as Key_Holder, Symbol,ExpiryDate,StrikePrice,OptionType,sum(TradeQty) as Total
+          from exlayer_master_manual.executed_trades_enra where ExpiryDate >= 20231206 
+          group by Symbol,ExpiryDate,StrikePrice,OptionType HAVING sum(TradeQty) != 0;`;
+ 
+  try {
+     let results1 = await new Promise((resolve, reject) => {
+       connection1.query(q1, (err, results) => {
+         if (err) {
+           reject(err);
+         } else {
+           resolve(results);
+         }
+       });
+     });
+ 
+     let results2 = await new Promise((resolve, reject) => {
+       connection2.query(q2, (err, results) => {
+         if (err) {
+           reject(err);
+         } else {
+           resolve(results);
+         }
+       });
+     });
+ 
+     let results3 = await new Promise((resolve, reject) => {
+       connection3.query(q3, (err, results) => {
+         if (err) {
+           reject(err);
+         } else {
+           resolve(results);
+         }
+       });
+     });
+ 
+   
+     for (let i = 0; i < results1.length; i++) {
+       let dataObj = results1[i];
+       mapObj.set(dataObj.Key_Holder, dataObj);
+     }
+     for (let i = 0; i < results2.length; i++) {
+       let dataObj = results2[i];
+       if (mapObj.has(dataObj.Key_Holder)) {
+         let prevData = mapObj.get(dataObj.Key_Holder);
+         let a = dataObj.Total;
+         let b = prevData.Total;
+         let ab = a + b;
+         prevData.Total = ab;
+         mapObj.set(dataObj.Key_Holder, prevData);
+       } else {
+         mapObj.set(dataObj.Key_Holder, dataObj);
+       }
+     }
+     for (let i = 0; i < results3.length; i++) {
+       let dataObj = results3[i];
+       if (mapObj.has(dataObj.Key_Holder)) {
+         let prevData = mapObj.get(dataObj.Key_Holder);
+         let a = dataObj.Total;
+         let b = prevData.Total;
+         let ab = a + b;
+         prevData.Total = ab;
+         mapObj.set(dataObj.Key_Holder, prevData);
+       } else {
+         mapObj.set(dataObj.Key_Holder, dataObj);
+       }
+     }
+     console.log({ mapObj });
+     res.send(mapObj);
+  } catch (error) {
+     console.log("Error Found on fetching data" + " " + error);
+     res.send("Error Found ...");
+  }
+ });
